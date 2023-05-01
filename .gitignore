@@ -1,1 +1,11 @@
 setup.py
+.vscode/settings.json
+build/lib/nonebot-plugin-watermarker/__init__.py
+build/lib/nonebot-plugin-watermarker/config.py
+build/lib/nonebot-plugin-watermarker/fuctions.py
+dist/nonebot-plugin-watermarker-0.1.0.tar.gz
+nonebot_plugin_watermarker.egg-info/dependency_links.txt
+nonebot_plugin_watermarker.egg-info/PKG-INFO
+nonebot_plugin_watermarker.egg-info/requires.txt
+nonebot_plugin_watermarker.egg-info/SOURCES.txt
+nonebot_plugin_watermarker.egg-info/top_level.txt
