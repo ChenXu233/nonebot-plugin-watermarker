@@ -42,7 +42,7 @@ _✨ 为你的bot发出的图片添加水印! ✨_
 在 nonebot2 项目的根目录下打开命令行, 输入以下指令即可安装
 
 ```cmd
-nb plugin install nonebot_piugin_watermarker
+nb plugin install nonebot-piugin-watermarker
 ```
 
 </details>
@@ -54,7 +54,7 @@ nb plugin install nonebot_piugin_watermarker
 命令行输入以下命令
 
 ```cmd
-pip install nonebot_plugin_watermarker
+pip install nonebot-plugin-watermarker
 ```
 
 打开 nonebot2 项目根目录下的 `pyproject.toml` 文件, 在 `[tool.nonebot]` 部分追加写入
