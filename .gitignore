@@ -9,3 +9,4 @@ nonebot_plugin_watermarker.egg-info/PKG-INFO
 nonebot_plugin_watermarker.egg-info/requires.txt
 nonebot_plugin_watermarker.egg-info/SOURCES.txt
 nonebot_plugin_watermarker.egg-info/top_level.txt
+test.py

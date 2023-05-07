@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Union, List, Tuple
 
 
-def str2img(string: str) -> Union[Image.Image, None]:
+async def str2img(string: str) -> Union[Image.Image, None]:
     """传入的MessageSegment中的file的字符串转换为PIL图片对象
 
     Args:
@@ -19,18 +19,26 @@ def str2img(string: str) -> Union[Image.Image, None]:
         Union[Image.Image, None]: _description_
     """
     base64_pattern = r"base64://[a-zA-Z0-9+/]+"
-    other_pattern = r"(?:file|http|https)://[a-zA-Z0-9+/]+"
+    other_pattern = r"(?:http|https)://\S+"
+    file_pattern = r"file:///\S+"
     image1 = None
+    breakpoint()
     if matcher := re.search(base64_pattern, string):
         string = matcher.group()
         string = string.replace("base64://", "")
-        bytes = base64.b64decode(string)
-        image_stream = io.BytesIO(bytes)
+        image_bytes = base64.b64decode(string)
+        image_stream = io.BytesIO(image_bytes)
         image1 = Image.open(image_stream)
     elif matcher := re.search(other_pattern, string):
         string = matcher.group()
-        bytes = urllib.request.urlopen(string).read()
-        image1 = Image.open(bytes)
+        image_bytes = urllib.request.urlopen(string).read()
+        image_stream = io.BytesIO(image_bytes)
+        image1 = Image.open(image_stream)
+    elif matcher := re.search(file_pattern, string):
+        string = matcher.group()
+        image_bytes = urllib.request.urlopen(string).read()
+        image_stream = io.BytesIO(image_bytes)
+        image1 = Image.open(image_stream)
 
     return image1
 
