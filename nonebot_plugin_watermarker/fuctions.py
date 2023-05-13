@@ -22,7 +22,7 @@ async def str2img(string: str) -> Union[Image.Image, None]:
     other_pattern = r"(?:http|https)://\S+"
     file_pattern = r"file:///\S+"
     image1 = None
-    breakpoint()
+    #breakpoint()
     if matcher := re.search(base64_pattern, string):
         string = matcher.group()
         string = string.replace("base64://", "")
