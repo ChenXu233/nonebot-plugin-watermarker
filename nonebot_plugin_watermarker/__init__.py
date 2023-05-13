@@ -5,6 +5,7 @@ from PIL import Image
 from io import BytesIO
 from typing import Dict, Any
 from dataclasses import asdict
+from contextvars import copy_context
 
 from nonebot.log import logger
 from nonebot.plugin import PluginMetadata
@@ -33,7 +34,7 @@ async def _handle(bot: Bot, api: str, data: Dict[str, Any]):
         if image_data["type"] != "image":
             continue
         file = image_data["data"]["file"]
-        if image := str2img(file):
+        if image := await str2img(file):
             image_size = image.size
             watermark_path = random.choice(image_dirs)
             watermark = Image.open(watermark_path)
