@@ -26,6 +26,8 @@ async def str2img(string: str) -> Union[Image.Image, None]:
     if matcher := re.search(base64_pattern, string):
         string = matcher.group()
         string = string.replace("base64://", "")
+        if base64_miss_padding := (4 - len(string) % 4):
+            string += "=" * base64_miss_padding
         image_bytes = base64.b64decode(string)
         image_stream = io.BytesIO(image_bytes)
         image1 = Image.open(image_stream)
