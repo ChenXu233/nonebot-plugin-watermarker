@@ -26,7 +26,11 @@ async def _handle(bot: Bot, api: str, data: Dict[str, Any]):
         if i in config.watermark_image_exculed_plugin:
             return
 
-    logger.debug("handle start")
+    logger.info(
+        "handling message form module={}\
+        \n如果你不想给这个插件加水印,请在配置里写入这里输出的module名称(注意!不要把module=给带上了!)"\
+        .format(current_matcher.get().module_name)
+        )
     for i in range(len(data["message"])):
         image_data = asdict(data["message"][i])
         if image_data["type"] != "image":continue
