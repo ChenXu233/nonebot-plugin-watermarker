@@ -13,7 +13,6 @@ from nonebot.log import logger
 
 from .config import config
 
-
 async def str2img(string: str) -> Union[Image.Image, None]:
     """传入的MessageSegment中的file的字符串转换为PIL图片对象
 
@@ -27,7 +26,6 @@ async def str2img(string: str) -> Union[Image.Image, None]:
     other_pattern = r"(?:http|https)://\S+"
     file_pattern = r"file:///\S+"
     image1 = None
-    #breakpoint()
     if matcher := re.search(base64_pattern, string):
         string = matcher.group()
         string = string.replace("base64://", "")
@@ -79,16 +77,19 @@ def position(image: Image.Image, watermark: Image.Image, where: Tuple[int, int])
     """TODO:不知道要不要做这个抽象"""
     pass
 
-async def watermark_on_jpg(image:Image.Image) -> str:
+def watermark_on_jpg(image:Image.Image) -> str:
     image_size = image.size
     watermark_path = random.choice(get_image_dirs(config.watermark_image_path))
     watermark = Image.open(watermark_path)
+    
+    # TODO: 神奇的混合手段,但是需要修改,而且需要增加代码复用性
     mix = tuple([int((k + j) / 2) for k, j in zip(watermark.size, image_size)])
     watermark_size = tuple([int(k * config.watermark_image_size) for k in mix])
     watermark_position = tuple(
         [k - j for k, j in zip(image_size, watermark_size)]
     )
     watermark.thumbnail(watermark_size)
+    
     logger.debug(f"watermark_size:{watermark_size}\nimage_size:{image_size}")
     image = image.convert("RGBA")
     watermark = watermark.convert("RGBA")
@@ -98,5 +99,35 @@ async def watermark_on_jpg(image:Image.Image) -> str:
 
     buffered = io.BytesIO()
     image.save(buffered, format="PNG")
+    byte_data = buffered.getvalue()
+    return base64.b64encode(byte_data).decode("utf-8")
+
+def watermark_on_gif(gif:Image.Image)->str:
+    watermark_path = random.choice(get_image_dirs(config.watermark_image_path))
+    watermark = Image.open(watermark_path)
+    frames:List[Image.Image] = []
+    for frame in ImageSequence.Iterator(gif):
+        
+        #为了让所有的函数高亮的强迫症状需要(有更好的方法记得踹我)
+        frame:Image.Image = frame
+        
+        #神奇的混合手段,但是需要修改
+        gif_size = gif.size
+        mix = tuple([int((k + j) / 2) for k, j in zip(watermark.size, gif_size)])
+        watermark_size = tuple([int(k * config.watermark_image_size) for k in mix])
+        watermark_position = tuple(
+            [k - j for k, j in zip(gif_size, watermark_size)]
+        )
+        
+        watermark.thumbnail(watermark_size)
+        logger.debug(f"watermark_size:{watermark_size}\nimage_size:{gif_size}")
+        frame = frame.convert("RGBA")
+        watermark = watermark.convert("RGBA")
+        mask = watermark.split()[3]
+        frame.paste(watermark, watermark_position, mask)
+        frames.append(frame)
+    newgif = frames[0]
+    buffered = io.BytesIO()
+    newgif.save(buffered, save_all=True, append_images=frames[1:],format='gif')
     byte_data = buffered.getvalue()
     return base64.b64encode(byte_data).decode("utf-8")

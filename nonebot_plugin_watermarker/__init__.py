@@ -30,12 +30,13 @@ async def _handle(bot: Bot, api: str, data: Dict[str, Any]):
     for i in range(len(data["message"])):
         image_data = asdict(data["message"][i])
         if image_data["type"] != "image":continue
-
+        #有减少嵌套的方法记得踹我
         if image := await str2img(image_data["data"]["file"]):
-            if image.format == 'GIF':return #暂时对GIF没有适配
+            if image.format == 'GIF':
+                base64_str = watermark_on_gif(image)
             else:
-                data["message"][i].data["file"] = "base64://" + (await watermark_on_jpg(image))
+                base64_str = watermark_on_jpg(image)
+            data["message"][i].data["file"] = "base64://" + base64_str
 
         else:
             logger.debug("这是一个代表图片的东西吗???:\n"+image_data["data"]["file"][:50])
-
