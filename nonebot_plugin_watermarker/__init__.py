@@ -1,16 +1,10 @@
-import base64
-import random
-
-from PIL import Image
-from io import BytesIO
 from typing import Dict, Any
 from dataclasses import asdict
-from contextvars import copy_context
 
 from nonebot.log import logger
 from nonebot.plugin import PluginMetadata
 from nonebot.adapters import Bot
-
+from nonebot.internal.matcher import current_matcher
 from .config import *
 from .fuctions import *
 
@@ -28,34 +22,20 @@ __plugin_meta__ = PluginMetadata(
 async def _handle(bot: Bot, api: str, data: Dict[str, Any]):
     if api not in ["send_msg", "send_message"]:
         return
+    if i := current_matcher.get().module_name:
+        if i in config.watermark_image_exculed_plugin:
+            return
+
     logger.debug("handle start")
     for i in range(len(data["message"])):
         image_data = asdict(data["message"][i])
-        if image_data["type"] != "image":
-            continue
-        file = image_data["data"]["file"]
-        if image := await str2img(file):
-            image_size = image.size
-            watermark_path = random.choice(image_dirs)
-            watermark = Image.open(watermark_path)
-            mix = tuple([int((k + j) / 2) for k, j in zip(watermark.size, image_size)])
-            watermark_size = tuple([int(k * config.watermark_image_size) for k in mix])
-            watermark_position = tuple(
-                [k - j for k, j in zip(image_size, watermark_size)]
-            )
-            watermark.thumbnail(watermark_size)
-            logger.debug(f"watermark_size:{watermark_size}\nimage_size:{image_size}")
-            image = image.convert("RGBA")
-            watermark = watermark.convert("RGBA")
-            mask = watermark.split()[3]
+        if image_data["type"] != "image":continue
 
-            image.paste(watermark, watermark_position, mask)
-
-            buffered = BytesIO()
-            image.save(buffered, format="PNG")
-            byte_data = buffered.getvalue()
-            base64_str = base64.b64encode(byte_data).decode("utf-8")
-            data["message"][i].data["file"] = "base64://" + base64_str
+        if image := await str2img(image_data["data"]["file"]):
+            if image.format == 'GIF':return #暂时对GIF没有适配
+            else:
+                data["message"][i].data["file"] = "base64://" + (await watermark_on_jpg(image))
 
         else:
-            logger.debug(file)
+            logger.debug("这是一个代表图片的东西吗???:\n"+image_data["data"]["file"][:50])
+

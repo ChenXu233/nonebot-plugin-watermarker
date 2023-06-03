@@ -2,11 +2,16 @@ import io
 import re
 import os
 import base64
+import random
 import urllib.request
-import PIL.Image as Image
+from PIL import Image, ImageFont, ImageDraw, ImageSequence
 
 from pathlib import Path
 from typing import Union, List, Tuple
+
+from nonebot.log import logger
+
+from .config import config
 
 
 async def str2img(string: str) -> Union[Image.Image, None]:
@@ -73,3 +78,25 @@ def get_image_dirs(path: Union[str, Path]) -> List[str]:
 def position(image: Image.Image, watermark: Image.Image, where: Tuple[int, int]):
     """TODO:不知道要不要做这个抽象"""
     pass
+
+async def watermark_on_jpg(image:Image.Image) -> str:
+    image_size = image.size
+    watermark_path = random.choice(get_image_dirs(config.watermark_image_path))
+    watermark = Image.open(watermark_path)
+    mix = tuple([int((k + j) / 2) for k, j in zip(watermark.size, image_size)])
+    watermark_size = tuple([int(k * config.watermark_image_size) for k in mix])
+    watermark_position = tuple(
+        [k - j for k, j in zip(image_size, watermark_size)]
+    )
+    watermark.thumbnail(watermark_size)
+    logger.debug(f"watermark_size:{watermark_size}\nimage_size:{image_size}")
+    image = image.convert("RGBA")
+    watermark = watermark.convert("RGBA")
+    mask = watermark.split()[3]
+
+    image.paste(watermark, watermark_position, mask)
+
+    buffered = io.BytesIO()
+    image.save(buffered, format="PNG")
+    byte_data = buffered.getvalue()
+    return base64.b64encode(byte_data).decode("utf-8")
